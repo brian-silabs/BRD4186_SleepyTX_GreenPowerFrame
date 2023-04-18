@@ -33,7 +33,7 @@
 
 // Radio related tests
 // Radio test master switch
-#define TEST_RADIO 1
+#define TEST_RADIO                        0
 
 #if TEST_RADIO
 // Disable / Enable CCA assesment upon TX
@@ -158,7 +158,7 @@
 #define IADC_POS_INPUT_3_BUS              ABUSALLOC
 #define IADC_POS_INPUT_3_BUSALLOC         GPIO_ABUSALLOC_AEVEN0_ADC0
 
-#define IADC_NEG_INPUT_3_PORT_PIN         iadcPosInputPortAPin5;//EXP #7
+#define IADC_NEG_INPUT_3_PORT_PIN         iadcNegInputPortAPin5;//EXP #7
 #define IADC_NEG_INPUT_3_BUS              ABUSALLOC
 #define IADC_NEG_INPUT_3_BUSALLOC         GPIO_ABUSALLOC_AODD0_ADC0
 
@@ -168,7 +168,7 @@
 #define IADC_POS_INPUT_4_BUS              ABUSALLOC
 #define IADC_POS_INPUT_4_BUSALLOC         GPIO_ABUSALLOC_AEVEN0_ADC0
 
-#define IADC_NEG_INPUT_4_PORT_PIN         iadcPosInputPortAPin9;//EXP #14 - Do not use with default VCOM
+#define IADC_NEG_INPUT_4_PORT_PIN         iadcNegInputPortAPin9;//EXP #14 - Do not use with default VCOM
 #define IADC_NEG_INPUT_4_BUS              ABUSALLOC
 #define IADC_NEG_INPUT_4_BUSALLOC         GPIO_ABUSALLOC_AODD0_ADC0
 
@@ -178,7 +178,7 @@
 #define IADC_POS_INPUT_5_BUS              ABUSALLOC
 #define IADC_POS_INPUT_5_BUSALLOC         GPIO_ABUSALLOC_AEVEN0_ADC0
 
-#define IADC_NEG_INPUT_5_PORT_PIN         iadcPosInputPortAPin7;//EXP #13
+#define IADC_NEG_INPUT_5_PORT_PIN         iadcNegInputPortAPin7;//EXP #13
 #define IADC_NEG_INPUT_5_BUS              ABUSALLOC
 #define IADC_NEG_INPUT_5_BUSALLOC         GPIO_ABUSALLOC_AODD0_ADC0
 
@@ -639,7 +639,7 @@ void initLDMA(uint32_t *buffer, uint32_t size)
 
   // Set descriptor to loop NUM_SAMPLES times and run continuously
   descriptor.xfer.decLoopCnt = 0;
-  descriptor.xfer.xferCnt = NUM_SAMPLES;
+  descriptor.xfer.xferCnt = NUM_SAMPLES - 1;
   descriptor.xfer.blockSize = ldmaCtrlBlockSizeUnit8;
 
   // Interrupt after transfer complete
@@ -822,12 +822,14 @@ void initBURTC(void)
 
   BURTC_Init_TypeDef burtcInit = BURTC_INIT_DEFAULT;
   burtcInit.compare0Top = true; // reset counter when counter reaches compare value
-  burtcInit.em4comp = true;     // BURTC compare interrupt wakes from EM4 (causes reset)
+  //burtcInit.em4comp = true;     // BURTC compare interrupt wakes from EM4 (causes reset)
 
-  //burtcInit.start = false;
+  burtcInit.start = false;
   BURTC_Init(&burtcInit);// Adds 15ms ? @EM1
 
-  BURTC_CounterReset();
+
+  //BURTC_CounterReset();//Starts BURTC !
+  //BURTC->CNT = 0U;
   BURTC_CompareSet(0, BURTC_IRQ_PERIOD_MS);
 
   BURTC_IntEnable(BURTC_IEN_COMP);    // compare match
@@ -836,15 +838,15 @@ void initBURTC(void)
 
 static void lowPowerInit(void)
 {
-  EMU_EM4Init_TypeDef em4Init = EMU_EM4INIT_DEFAULT;
+  //EMU_EM4Init_TypeDef em4Init = EMU_EM4INIT_DEFAULT;
   EMU_EM23Init_TypeDef em23Init = EMU_EM23INIT_DEFAULT;
 
-  em4Init.retainUlfrco = true;
+  //em4Init.retainUlfrco = true;
   em23Init.vScaleEM23Voltage = emuVScaleEM23_LowPower;
 
   // Initialize EM23 energy modes
   EMU_EM23Init(&em23Init);
-  EMU_EM4Init(&em4Init);
+  //EMU_EM4Init(&em4Init);
 }
 
 
@@ -951,6 +953,7 @@ void LDMA_IRQHandler(void)
 void BURTC_IRQHandler(void)
 {
   BURTC_IntClear(BURTC_IF_COMP); // compare match
+  BURTC_Stop();//Make it one shot in EM2
 #if TEST_RADIO
   txSequenceINitiated = false;//For EM2 purposes only
 #endif
@@ -1127,7 +1130,7 @@ void app_process_action(void)
     if (sleepAllowed) {
         if(shouldHibernate)//Due to EM2 implementation, which has no reset
         {
-            BURTC_Enable(true);//Enable next TX
+            BURTC_CounterReset();//Enable next TX
             shouldHibernate = false;//Disable re-enabling the radio TX in case we were woken up in between
         }
       // Go to sleep
@@ -1142,7 +1145,7 @@ void app_process_action(void)
 #else// !#if TEST_RADIO
   if(shouldHibernate)
     {
-      BURTC_Enable(true);//Set Period timer
+      BURTC_CounterReset();//Set Period timer
       // Go to sleep
       EMU_EnterEM2(true);
     }
