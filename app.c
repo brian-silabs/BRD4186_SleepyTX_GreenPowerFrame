@@ -635,11 +635,11 @@ void initLDMA(uint32_t *buffer, uint32_t size)
     LDMA_TRANSFER_CFG_PERIPHERAL(ldmaPeripheralSignal_IADC0_IADC_SCAN);
 
   // Set up descriptors for buffer transfer
-  descriptor = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_LINKREL_P2M_WORD(&IADC0->SINGLEFIFODATA, buffer, size, 0);
+  descriptor = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_LINKREL_P2M_WORD(&IADC0->SCANFIFODATA, buffer, size, 0);
 
   // Set descriptor to loop NUM_SAMPLES times and run continuously
   descriptor.xfer.decLoopCnt = 0;
-  descriptor.xfer.xferCnt = NUM_SAMPLES - 1;
+  descriptor.xfer.xferCnt = NUM_SAMPLES;
   descriptor.xfer.blockSize = ldmaCtrlBlockSizeUnit8;
 
   // Interrupt after transfer complete
