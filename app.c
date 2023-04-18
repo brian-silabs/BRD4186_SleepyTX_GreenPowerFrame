@@ -85,9 +85,19 @@
 // How many samples to capture
 #define NUM_SAMPLES                       64
 
-// Set CLK_ADC to 1 MHz
+// Set CLK_ADC to 10MHz
 #define CLK_SRC_ADC_FREQ                  20000000 // CLK_SRC_ADC
-#define CLK_ADC_FREQ                      4000000 // CLK_ADC
+
+// Takes Errata IADC_E306 into account
+#define CLK_ADC_FREQ_GAIN_4X              2500000 // CLK_ADC - 2.5MHz max in gain 4x
+#define CLK_ADC_FREQ_GAIN_0P5X            10000000 // CLK_ADC - 10MHz max in 0.5x gain
+
+// Number of scan channels
+#define NUM_INPUTS                        6
+#define IADC_LDMA_CHANNEL                 0
+
+#define I_CONFIG                          1
+#define U_CONFIG                          0
 
 #if (USE_LETIMER_AS_SAMPLING_TRIGGER)
 // ADC sample rate @2340.6Hz //256sps/s
@@ -112,29 +122,78 @@
  *
  * ...for port A, port B, and port C/D pins, even and odd, respectively.
  */
-//#define IADC_INPUT_0_PORT_PIN     iadcPosInputPortAPin5;
-//
-//#define IADC_INPUT_0_BUS          ABUSALLOC
-//#define IADC_INPUT_0_BUSALLOC     GPIO_ABUSALLOC_AODD0_ADC0
+/// ////////////////////////////////////////////////////////////////////////////
 
-// analog recommanded to be on A or B for EM2.
-#define IADC_INPUT_BUS0                   ABUSALLOC
-#define IADC_INPUT_BUS1                   ABUSALLOC
-#define IADC_INPUT_BUSALLOC0              GPIO_ABUSALLOC_AODD0_ADC0
-#define IADC_INPUT_BUSALLOC1              GPIO_ABUSALLOC_AODD1_ADC0
-#define IADC_INPUT_POS                    iadcPosInputPortAPin0 // With WSK board P12 h15
-#define IADC_INPUT_NEG                    iadcNegInputPortAPin5 // With WSK board P13 h16
+#define IADC_POS_INPUT_0_PORT_PIN         iadcPosInputPortBPin5;//EXP #3
+#define IADC_POS_INPUT_0_BUS              BBUSALLOC
+#define IADC_POS_INPUT_0_BUSALLOC         GPIO_BBUSALLOC_BODD0_ADC0
 
-#define LETIMER_TRIGGER_GPIO              1
+#define IADC_NEG_INPUT_0_PORT_PIN         iadcNegInputGnd;
+#define IADC_NEG_INPUT_0_BUS              BBUSALLOC
+#define IADC_NEG_INPUT_0_BUSALLOC         GPIO_BBUSALLOC_BODD0_ADC0
 
-#define LETIMER_TRIGGER_GPIO_PORT         gpioPortB
-#define LETIMER_TRIGGER_GPIO_PIN          5
+/// ////////////////////////////////////////////////////////////////////////////
+
+#define IADC_POS_INPUT_1_PORT_PIN         iadcPosInputPortBPin1;//BUTTON 0
+#define IADC_POS_INPUT_1_BUS              BBUSALLOC
+#define IADC_POS_INPUT_1_BUSALLOC         GPIO_BBUSALLOC_BODD0_ADC0
+
+#define IADC_NEG_INPUT_1_PORT_PIN         iadcNegInputGnd;
+#define IADC_NEG_INPUT_1_BUS              BBUSALLOC
+#define IADC_NEG_INPUT_1_BUSALLOC         GPIO_BBUSALLOC_BODD0_ADC0
+
+/// ////////////////////////////////////////////////////////////////////////////
+
+#define IADC_POS_INPUT_2_PORT_PIN         iadcPosInputPortBPin2;//LED 0
+#define IADC_POS_INPUT_2_BUS              BBUSALLOC
+#define IADC_POS_INPUT_2_BUSALLOC         GPIO_BBUSALLOC_BEVEN0_ADC0
+
+#define IADC_NEG_INPUT_2_PORT_PIN         iadcNegInputGnd;
+#define IADC_NEG_INPUT_2_BUS              BBUSALLOC
+#define IADC_NEG_INPUT_2_BUSALLOC         GPIO_BBUSALLOC_BEVEN0_ADC0
+
+/// ////////////////////////////////////////////////////////////////////////////
+
+#define IADC_POS_INPUT_3_PORT_PIN         iadcPosInputPortAPin0;//EXP #5
+#define IADC_POS_INPUT_3_BUS              ABUSALLOC
+#define IADC_POS_INPUT_3_BUSALLOC         GPIO_ABUSALLOC_AEVEN0_ADC0
+
+#define IADC_NEG_INPUT_3_PORT_PIN         iadcPosInputPortAPin5;//EXP #7
+#define IADC_NEG_INPUT_3_BUS              ABUSALLOC
+#define IADC_NEG_INPUT_3_BUSALLOC         GPIO_ABUSALLOC_AODD0_ADC0
+
+/// ////////////////////////////////////////////////////////////////////////////
+
+#define IADC_POS_INPUT_4_PORT_PIN         iadcPosInputPortAPin8;//EXP #12 - Do not use with default VCOM
+#define IADC_POS_INPUT_4_BUS              ABUSALLOC
+#define IADC_POS_INPUT_4_BUSALLOC         GPIO_ABUSALLOC_AEVEN0_ADC0
+
+#define IADC_NEG_INPUT_4_PORT_PIN         iadcPosInputPortAPin9;//EXP #14 - Do not use with default VCOM
+#define IADC_NEG_INPUT_4_BUS              ABUSALLOC
+#define IADC_NEG_INPUT_4_BUSALLOC         GPIO_ABUSALLOC_AODD0_ADC0
+
+/// ////////////////////////////////////////////////////////////////////////////
+
+#define IADC_POS_INPUT_5_PORT_PIN         iadcPosInputPortAPin6;//EXP #11
+#define IADC_POS_INPUT_5_BUS              ABUSALLOC
+#define IADC_POS_INPUT_5_BUSALLOC         GPIO_ABUSALLOC_AEVEN0_ADC0
+
+#define IADC_NEG_INPUT_5_PORT_PIN         iadcPosInputPortAPin7;//EXP #13
+#define IADC_NEG_INPUT_5_BUS              ABUSALLOC
+#define IADC_NEG_INPUT_5_BUSALLOC         GPIO_ABUSALLOC_AODD0_ADC0
+
+/// ////////////////////////////////////////////////////////////////////////////
+
+#define DEBUG_LETIMER_TRIGGER_GPIO        1
+
+#define LETIMER_TRIGGER_GPIO_PORT         gpioPortB//LED 1
+#define LETIMER_TRIGGER_GPIO_PIN          4//LED 1
 
 #endif//#if TEST_IADC
 
 // Number of 1 KHz ULFRCO clocks between BURTC interrupts
 // Must fit into uint32_t
-#define BURTC_IRQ_PERIOD_MS         5000// Will be 60s
+#define BURTC_IRQ_PERIOD_MS               5000// Will be 60s
 
 // -----------------------------------------------------------------------------
 //                          Static Function Declarations
@@ -272,15 +331,15 @@ RAIL_PtiConfig_t railPtiConfig = {
 // -----------------------------------------------------------------------------
 
 #if TEST_IADC
-
 // Globally declared LDMA link descriptor
 LDMA_Descriptor_t descriptor;
 
 // buffer to store IADC samples
-uint32_t singleBuffer[NUM_SAMPLES];
+uint32_t scanBuffer[NUM_SAMPLES] = {0xFF};
 uint32_t iadcPrsChannel = 0;
-
 #endif //#if TEST_IADC
+
+
 
 #if TEST_RADIO
 // Static variables used for application purposes
@@ -361,11 +420,12 @@ static void initPrs(void)
   // Select PRS channel 1 as trigger for IADC Single trigger
   PRS_ConnectConsumer(iadcPrsChannel,
                       prsTypeAsync,
-                      prsConsumerIADC0_SINGLETRIGGER);
+                      prsConsumerIADC0_SCANTRIGGER);
+
 #if DEBUG_LETIMER_TRIGGER_GPIO
   // STR : disable pin output
   GPIO_PinModeSet(LETIMER_TRIGGER_GPIO_PORT, LETIMER_TRIGGER_GPIO_PIN, gpioModePushPull,1);
-  PRS_PinOutput(LETIMER_TRIGGER_PRS_CHANNEL, prsTypeAsync, LETIMER_TRIGGER_GPIO_PORT, LETIMER_TRIGGER_GPIO_PIN);
+  PRS_PinOutput(iadcPrsChannel, prsTypeAsync, LETIMER_TRIGGER_GPIO_PORT, LETIMER_TRIGGER_GPIO_PIN);
 #endif//#if DEBUG_LETIMER_TRIGGER_GPIO
 }
 #endif//#if (USE_LETIMER_AS_SAMPLING_TRIGGER)
@@ -378,8 +438,9 @@ void initIADC (void)
   // Declare init structs
   IADC_Init_t init = IADC_INIT_DEFAULT;
   IADC_AllConfigs_t initAllConfigs = IADC_ALLCONFIGS_DEFAULT;
-  IADC_InitSingle_t initSingle = IADC_INITSINGLE_DEFAULT;
-  IADC_SingleInput_t initSingleInput = IADC_SINGLEINPUT_DEFAULT;
+
+  IADC_InitScan_t initScan = IADC_INITSCAN_DEFAULT;
+  IADC_ScanTable_t initScanTable = IADC_SCANTABLE_DEFAULT; // Scan Table
 
   // Enable IADC clock
   CMU_ClockEnable(cmuClock_GPIO, true);
@@ -393,7 +454,7 @@ void initIADC (void)
   //CMU_ClockSelectSet(cmuClock_IADCCLK, cmuSelect_EM23GRPACLK);
 
 #if (USE_LETIMER_AS_SAMPLING_TRIGGER)
-  init.iadcClkSuspend1 = true;//Turn off clocks between single acquisitions
+  init.iadcClkSuspend0 = true;//Turn off clocks between scan acquisitions
 #endif
 
   // Modify init structs and initialize
@@ -407,58 +468,145 @@ void initIADC (void)
   init.timerCycles = TIMER_CYCLES;
 #endif
 
-  // Configuration 0 is used by both scan and single conversions by default
-  // Use unbuffered AVDD as reference
-  initAllConfigs.configs[0].reference = iadcCfgReferenceInt1V2; //iadcCfgReferenceVddx; //TODO : review depending on power consumption
-  initAllConfigs.configs[0].analogGain = (IADC_CfgAnalogGain_t) iadcCfgAnalogGain4x;    //TODO : review depending on power consumption
+/// ////////////////////////////////////////////////////////////////////////////
+  /*
+     * Configuration 0 is used by both scan and single conversions by
+     * default.  Use internal bandgap as the reference and specify the
+     * reference voltage in mV.
+     *
+     * Resolution is not configurable directly but is based on the
+     * selected oversampling ratio (osrHighSpeed), which defaults to
+     * 2x and generates 12-bit results.
+     */
+    //I measurements
+    initAllConfigs.configs[I_CONFIG].reference = iadcCfgReferenceInt1V2;
+    initAllConfigs.configs[I_CONFIG].vRef = 1210;
 
-  // Divides CLK_SRC_ADC to set the CLK_ADC frequency
-  // Default oversampling (OSR) is 2x, and Conversion Time = ((4 * OSR) + 2) / fCLK_ADC //TODO : review depending on power consumption
-  initAllConfigs.configs[0].adcClkPrescale = IADC_calcAdcClkPrescale(IADC0,
-                                                                    CLK_ADC_FREQ,
-                                                                    0,
-                                                                    iadcCfgModeNormal,
-                                                                    init.srcClkPrescale);
+    initAllConfigs.configs[I_CONFIG].osrHighSpeed = iadcCfgOsrHighSpeed32x;
+    initAllConfigs.configs[I_CONFIG].analogGain = iadcCfgAnalogGain4x;
 
-  initAllConfigs.configs[0].osrHighSpeed = (IADC_CfgOsrHighSpeed_t) iadcCfgOsrHighSpeed32x;//TODO : review depending on power consumption
+    // Divides CLK_SRC_ADC to set the CLK_ADC frequency
+    // Default oversampling (OSR) is 2x, and Conversion Time = ((4 * OSR) + 2) / fCLK_ADC
+    // Combined with the 2 cycle delay when switching input channels, total sample rate is 833ksps
+    initAllConfigs.configs[I_CONFIG].adcClkPrescale = IADC_calcAdcClkPrescale(IADC0,
+                                                                       CLK_ADC_FREQ_GAIN_4X,
+                                                                       0,
+                                                                       iadcCfgModeNormal,
+                                                                       init.srcClkPrescale);
 
-  // Single initialization
+/// ////////////////////////////////////////////////////////////////////////////
+
+    //U measurements
+    initAllConfigs.configs[U_CONFIG].reference = iadcCfgReferenceInt1V2;
+    initAllConfigs.configs[U_CONFIG].vRef = 1210;
+
+    initAllConfigs.configs[U_CONFIG].osrHighSpeed = iadcCfgOsrHighSpeed2x;
+    initAllConfigs.configs[U_CONFIG].analogGain = iadcCfgAnalogGain0P5x;
+
+    // Divides CLK_SRC_ADC to set the CLK_ADC frequency
+    // Default oversampling (OSR) is 2x, and Conversion Time = ((4 * OSR) + 2) / fCLK_ADC
+    // Combined with the 2 cycle delay when switching input channels, total sample rate is 833ksps
+    initAllConfigs.configs[U_CONFIG].adcClkPrescale = IADC_calcAdcClkPrescale(IADC0,
+                                                                       CLK_ADC_FREQ_GAIN_0P5X,
+                                                                       0,
+                                                                       iadcCfgModeNormal,
+                                                                       init.srcClkPrescale);
+
+/// ////////////////////////////////////////////////////////////////////////////
+
+  // Scan initialization
   // On every trigger, start conversion
-  initSingle.triggerAction = iadcTriggerActionOnce;
+  initScan.triggerAction = iadcTriggerActionOnce;
 
 #if (USE_LETIMER_AS_SAMPLING_TRIGGER)
   // Set conversions to trigger from letimer/PRS
-  initSingle.triggerSelect = iadcTriggerSelPrs0PosEdge;
+  initScan.triggerSelect = iadcTriggerSelPrs0PosEdge;
 #else
   // Set conversions to trigger from IADC internal timer
-  initSingle.triggerSelect = iadcTriggerSelTimer;
+  initScan.triggerSelect = iadcTriggerSelTimer;
 #endif
 
-  initSingle.dataValidLevel = iadcFifoCfgDvl4;
+  initScan.dataValidLevel = iadcFifoCfgDvl8;
 
   // Set alignment to the left 16 bits
-  initSingle.alignment = iadcAlignLeft16;
+  initScan.alignment = iadcAlignRight16;
 
-  // Enable triggering of single conversion
-  initSingle.start = true;
+  // Enable triggering of scan conversion
+  initScan.start = true;
 
   // Set to run in EM2
-  initSingle.fifoDmaWakeup = true;
+  initScan.fifoDmaWakeup = true;
 
-  // Configure Input sources for single ended conversion
-  initSingleInput.posInput = IADC_INPUT_POS;
-  initSingleInput.negInput = IADC_INPUT_NEG;
+  initScan.showId = true;
+
+  // Configure entries in scan table
+  // 0, 1 & 2 -> Single ended, U inputs
+  // 3, 4 & 5 -> Differential , I inputs
+  // Takes Errata IADC_E306 into account
+  initScanTable.entries[0].posInput = IADC_POS_INPUT_0_PORT_PIN;//U1
+  initScanTable.entries[0].negInput = IADC_NEG_INPUT_0_PORT_PIN;
+  initScanTable.entries[0].includeInScan = true;
+  initScanTable.entries[0].configId = U_CONFIG;
+
+  initScanTable.entries[1].posInput = IADC_POS_INPUT_1_PORT_PIN;//U2
+  initScanTable.entries[1].negInput = IADC_NEG_INPUT_1_PORT_PIN;
+  initScanTable.entries[1].includeInScan = true;
+  initScanTable.entries[1].configId = U_CONFIG;
+
+  initScanTable.entries[2].posInput = IADC_POS_INPUT_2_PORT_PIN;//U3
+  initScanTable.entries[2].negInput = IADC_NEG_INPUT_2_PORT_PIN;
+  initScanTable.entries[2].includeInScan = true;
+  initScanTable.entries[2].configId = U_CONFIG;
+
+  initScanTable.entries[3].posInput = IADC_POS_INPUT_3_PORT_PIN;//I1
+  initScanTable.entries[3].negInput = IADC_NEG_INPUT_3_PORT_PIN;
+  initScanTable.entries[3].includeInScan = true;
+  initScanTable.entries[3].configId = I_CONFIG;
+
+  initScanTable.entries[4].posInput = IADC_POS_INPUT_4_PORT_PIN;//I2
+  initScanTable.entries[4].negInput = IADC_NEG_INPUT_4_PORT_PIN;
+  initScanTable.entries[4].includeInScan = true;
+  initScanTable.entries[4].configId = I_CONFIG;
+
+  initScanTable.entries[5].posInput = IADC_POS_INPUT_5_PORT_PIN;//I3
+  initScanTable.entries[5].negInput = IADC_NEG_INPUT_5_PORT_PIN;
+  initScanTable.entries[5].includeInScan = true;
+  initScanTable.entries[5].configId = I_CONFIG;
+
+  initScanTable.entries[6].posInput = iadcPosInputGnd;
+  initScanTable.entries[6].negInput = iadcNegInputGnd;
+  initScanTable.entries[6].includeInScan = true;
+  initScanTable.entries[6].configId = U_CONFIG;
+
+  initScanTable.entries[7].posInput = iadcPosInputGnd;
+  initScanTable.entries[7].negInput = iadcNegInputGnd;
+  initScanTable.entries[7].includeInScan = true;
+  initScanTable.entries[7].configId = U_CONFIG;
 
   // Initialize IADC
   IADC_init(IADC0, &init, &initAllConfigs);
 
-  // Initialize Single
-  IADC_initSingle(IADC0, &initSingle, &initSingleInput);
+  // Initialize Scan
+  IADC_initScan(IADC0, &initScan, &initScanTable);
 
   // Allocate the analog bus for ADC0 inputs
-  // Allocate the analog bus for IADC0 input
-  GPIO->IADC_INPUT_BUS0 |= IADC_INPUT_BUSALLOC0;
-  GPIO->IADC_INPUT_BUS1 |= IADC_INPUT_BUSALLOC1;
+  GPIO->IADC_POS_INPUT_0_BUS |= IADC_POS_INPUT_0_BUSALLOC;
+  GPIO->IADC_NEG_INPUT_0_BUS |= IADC_NEG_INPUT_0_BUSALLOC;
+
+  GPIO->IADC_POS_INPUT_1_BUS |= IADC_POS_INPUT_1_BUSALLOC;
+  GPIO->IADC_NEG_INPUT_1_BUS |= IADC_NEG_INPUT_1_BUSALLOC;
+
+  GPIO->IADC_POS_INPUT_2_BUS |= IADC_POS_INPUT_2_BUSALLOC;
+  GPIO->IADC_NEG_INPUT_2_BUS |= IADC_NEG_INPUT_2_BUSALLOC;
+
+  GPIO->IADC_POS_INPUT_3_BUS |= IADC_POS_INPUT_3_BUSALLOC;
+  GPIO->IADC_NEG_INPUT_3_BUS |= IADC_NEG_INPUT_3_BUSALLOC;
+
+  GPIO->IADC_POS_INPUT_3_BUS |= IADC_POS_INPUT_3_BUSALLOC;
+  GPIO->IADC_NEG_INPUT_3_BUS |= IADC_NEG_INPUT_3_BUSALLOC;
+
+  GPIO->IADC_POS_INPUT_3_BUS |= IADC_POS_INPUT_3_BUSALLOC;
+  GPIO->IADC_NEG_INPUT_3_BUS |= IADC_NEG_INPUT_3_BUSALLOC;
 }
 
 /**************************************************************************//**
@@ -484,7 +632,7 @@ void initLDMA(uint32_t *buffer, uint32_t size)
   // Configure LDMA for transfer from IADC to memory
   // LDMA will loop continuously
   LDMA_TransferCfg_t transferCfg =
-    LDMA_TRANSFER_CFG_PERIPHERAL(ldmaPeripheralSignal_IADC0_IADC_SINGLE);
+    LDMA_TRANSFER_CFG_PERIPHERAL(ldmaPeripheralSignal_IADC0_IADC_SCAN);
 
   // Set up descriptors for buffer transfer
   descriptor = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_LINKREL_P2M_WORD(&IADC0->SINGLEFIFODATA, buffer, size, 0);
@@ -492,14 +640,14 @@ void initLDMA(uint32_t *buffer, uint32_t size)
   // Set descriptor to loop NUM_SAMPLES times and run continuously
   descriptor.xfer.decLoopCnt = 0;
   descriptor.xfer.xferCnt = NUM_SAMPLES;
-  descriptor.xfer.blockSize = ldmaCtrlBlockSizeUnit4;
+  descriptor.xfer.blockSize = ldmaCtrlBlockSizeUnit8;
 
   // Interrupt after transfer complete
   descriptor.xfer.doneIfs = 1;
   descriptor.xfer.ignoreSrec = 1;
 
   // Start transfer, LDMA will sample the IADC NUM_SAMPLES time, and then interrupt
-  LDMA_StartTransfer(0, (void*)&transferCfg, (void*)&descriptor);
+  LDMA_StartTransfer(IADC_LDMA_CHANNEL, (void*)&transferCfg, (void*)&descriptor);
 }
 #endif //#if TEST_IADC
 
@@ -849,7 +997,7 @@ void app_init(void)
   initIADC();
 
   // Initialize LDMA
-  initLDMA(singleBuffer, NUM_SAMPLES);
+  initLDMA(scanBuffer, NUM_SAMPLES);
 
 #if (USE_LETIMER_AS_SAMPLING_TRIGGER)
   //Init LETIMER
