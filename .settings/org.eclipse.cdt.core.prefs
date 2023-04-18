@@ -1,0 +1,11 @@
+eclipse.preferences.version=1
+environment/project/com.silabs.ss.tool.ide.arm.toolchain.iar.debug\#com.silabs.ss.tool.ide.arm.toolchain.iar\:9.20.4.327/PATH/delimiter=;
+environment/project/com.silabs.ss.tool.ide.arm.toolchain.iar.debug\#com.silabs.ss.tool.ide.arm.toolchain.iar\:9.20.4.327/PATH/operation=prepend
+environment/project/com.silabs.ss.tool.ide.arm.toolchain.iar.debug\#com.silabs.ss.tool.ide.arm.toolchain.iar\:9.20.4.327/PATH/value=C\:\\SiliconLabs\\SimplicityStudio\\v5_2\\support\\common\\build\\msys\\1.0\\bin
+environment/project/com.silabs.ss.tool.ide.arm.toolchain.iar.debug\#com.silabs.ss.tool.ide.arm.toolchain.iar\:9.20.4.327/append=true
+environment/project/com.silabs.ss.tool.ide.arm.toolchain.iar.debug\#com.silabs.ss.tool.ide.arm.toolchain.iar\:9.20.4.327/appendContributed=true
+environment/project/com.silabs.ss.tool.ide.arm.toolchain.iar.release\#com.silabs.ss.tool.ide.arm.toolchain.iar\:9.20.4.327/PATH/delimiter=;
+environment/project/com.silabs.ss.tool.ide.arm.toolchain.iar.release\#com.silabs.ss.tool.ide.arm.toolchain.iar\:9.20.4.327/PATH/operation=prepend
+environment/project/com.silabs.ss.tool.ide.arm.toolchain.iar.release\#com.silabs.ss.tool.ide.arm.toolchain.iar\:9.20.4.327/PATH/value=C\:\\SiliconLabs\\SimplicityStudio\\v5_2\\support\\common\\build\\msys\\1.0\\bin
+environment/project/com.silabs.ss.tool.ide.arm.toolchain.iar.release\#com.silabs.ss.tool.ide.arm.toolchain.iar\:9.20.4.327/append=true
+environment/project/com.silabs.ss.tool.ide.arm.toolchain.iar.release\#com.silabs.ss.tool.ide.arm.toolchain.iar\:9.20.4.327/appendContributed=true

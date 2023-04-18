@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="uc.module.setup.ucTemplate.com.silabs.ss.tool.ide.arm.toolchain.iar.debug#com.silabs.ss.tool.ide.arm.toolchain.iar:9.20.4.327.iar" propertyScope="project">
+  <folder name="autogen">
+    <file name="RTE_Components.h" builtin="true" generated="true"/>
+    <file name="sl_component_catalog.h" builtin="true" generated="true"/>
+    <file name="sl_device_init_clocks.c" builtin="true" generated="true"/>
+    <file name="sl_event_handler.h" builtin="true" generated="true"/>
+    <file name="sl_event_handler.c" builtin="true" generated="true"/>
+    <file name="linkerfile.icf" builtin="true" generated="true"/>
+  </folder>
+  <includePath uri="studio:/project/autogen"/>
+</project>
