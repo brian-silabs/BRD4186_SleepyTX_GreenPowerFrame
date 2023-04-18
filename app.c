@@ -33,7 +33,7 @@
 
 // Radio related tests
 // Radio test master switch
-#define TEST_RADIO 0
+#define TEST_RADIO 1
 
 #if TEST_RADIO
 // Disable / Enable CCA assesment upon TX
@@ -769,6 +769,23 @@ static void radioEventHandler(RAIL_Handle_t railHandle,
     calibrateRadio = true;
   }
 }
+
+void RAILCb_AssertFailed(RAIL_Handle_t railHandle, uint32_t errorCode)
+{
+  static const char* railErrorMessages[] = RAIL_ASSERT_ERROR_MESSAGES;
+  const char *errorMessage = "Unknown";
+  // If this error code is within the range of known error messages then use
+  // the appropriate error message.
+  if (errorCode < (sizeof(railErrorMessages) / sizeof(char*))) {
+    errorMessage = railErrorMessages[errorCode];//If error is RAIL_ASSERT_FAILED_RTCC_SYNC_STALE_DATA
+                                                //Ensure no call to EMU_EnterEM2 has been made outside the
+  }
+
+  while(1);
+  //printf(errorMessage);
+  // Reset the chip since an assert is a fatal error
+  //NVIC_SystemReset();
+}
 #endif //#if TEST_RADIO
 
 #if TEST_IADC
@@ -986,21 +1003,4 @@ void app_process_action(void)
       while(1);
   }
 #endif//#if TEST_RADIO
-}
-
-void RAILCb_AssertFailed(RAIL_Handle_t railHandle, uint32_t errorCode)
-{
-  static const char* railErrorMessages[] = RAIL_ASSERT_ERROR_MESSAGES;
-  const char *errorMessage = "Unknown";
-  // If this error code is within the range of known error messages then use
-  // the appropriate error message.
-  if (errorCode < (sizeof(railErrorMessages) / sizeof(char*))) {
-    errorMessage = railErrorMessages[errorCode];//If error is RAIL_ASSERT_FAILED_RTCC_SYNC_STALE_DATA
-                                                //Ensure no call to EMU_EnterEM2 has been made outside the
-  }
-
-  while(1);
-  //printf(errorMessage);
-  // Reset the chip since an assert is a fatal error
-  //NVIC_SystemReset();
 }
