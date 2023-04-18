@@ -24,6 +24,8 @@ sdk: {id: gecko_sdk, version: 4.2.2}
 toolchain_settings: []
 component:
 - {id: emlib_rmu}
+- {id: emlib_iadc}
+- {id: emlib_letimer}
 - {id: rail_util_pa}
 - {id: emlib_burtc}
 - {id: sl_system}

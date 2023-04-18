@@ -662,18 +662,18 @@ void app_process_action(void)
   // Go critical to assess sleep decisions
   CORE_ENTER_CRITICAL();
 
-  if(shouldHibernate && (!saveLastFC))//Should not go to sleep if FC has to be saved first
-    {
-      BURTC_Enable(true);
-      EMU_EnterEM2(true);//EMU_EnterEM4();
-    }
-  else if(shouldSleep && (!saveLastFC) && (!shouldHibernate)){
+  if(shouldSleep && (!saveLastFC)){
     txstatus = RAIL_Sleep(wakeupTime, &sleepAllowed);
     if (txstatus != RAIL_STATUS_NO_ERROR) {
       CORE_EXIT_CRITICAL();
       return;
     }
     if (sleepAllowed) {
+        if(shouldHibernate)//Due to EM2 implementation, which has no reset
+        {
+            BURTC_Enable(true);//Enable next TX
+            shouldHibernate = false;//Disable re-enabling the radio TX in case we were woken up in between
+        }
       // Go to sleep
       EMU_EnterEM2(true);
     }
@@ -694,4 +694,20 @@ void app_process_action(void)
       while(1);
   }
 #endif//#if TEST_RADIO
+}
+
+void RAILCb_AssertFailed(RAIL_Handle_t railHandle, uint32_t errorCode)
+{
+  static const char* railErrorMessages[] = RAIL_ASSERT_ERROR_MESSAGES;
+  const char *errorMessage = "Unknown";
+  // If this error code is within the range of known error messages then use
+  // the appropriate error message.
+  if (errorCode < (sizeof(railErrorMessages) / sizeof(char*))) {
+    errorMessage = railErrorMessages[errorCode];
+  }
+
+  while(1);
+  //printf(errorMessage);
+  // Reset the chip since an assert is a fatal error
+  //NVIC_SystemReset();
 }
