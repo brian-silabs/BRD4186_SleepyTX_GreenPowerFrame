@@ -19,6 +19,8 @@
 #include "rail_types.h"
 #include "rail_ieee802154.h"
 
+#include "sl_device_init_dpll.h"
+
 #include "pa_conversions_efr32.h"
 
 #include "em_msc.h"
@@ -33,7 +35,7 @@
 
 // Radio related tests
 // Radio test master switch
-#define TEST_RADIO                        0
+#define TEST_RADIO                        1
 
 #if TEST_RADIO
 // Disable / Enable CCA assesment upon TX
@@ -1145,9 +1147,42 @@ void app_process_action(void)
 #else// !#if TEST_RADIO
   if(shouldHibernate)
     {
+
+      CORE_DECLARE_IRQ_STATE;
+      // Go critical to assess sleep decisions
+      CORE_ENTER_CRITICAL();
       BURTC_CounterReset();//Set Period timer
+
+
+      //From ref man 9.4.3.1:
+      // The DPLL is disabled automatically when entering EM2, EM3, or EM4. Note that disabling the DPLL will not automatically turn off the
+      // reference clock. The CLKSEF field in CMU_DPLLREFCLKCTRL must be set to DISABLED before entering EM2 or the selected
+      // REFCLK may continue to run in EM2.
+
+      //Disable PLL REF
+      CMU_CLOCK_SELECT_SET(SYSCLK, FSRCO);
+      CMU_CLOCK_SELECT_SET(EM01GRPACLK, FSRCO);//Necessary ?
+      CMU_CLOCK_SELECT_SET(EM01GRPCCLK, FSRCO);//Necessary ?
+
+      CMU_CLOCK_SELECT_SET(DPLLREFCLK, DISABLED);
+      //At this point the MCU is ready for sleep with HCLK on FSRCO
+      //Need to check with the team if that is the best config
+
+      CMU_CLOCK_SELECT_SET(SYSCLK, HFRCODPLL);
+      CMU_CLOCK_SELECT_SET(EM01GRPACLK, HFRCODPLL);//Necessary ?
+      CMU_CLOCK_SELECT_SET(EM01GRPCCLK, HFRCODPLL);//Necessary ?
+
       // Go to sleep
       EMU_EnterEM2(true);
+
+      sl_device_init_dpll();
+      //Enable PLL REF
+      CMU_CLOCK_SELECT_SET(DPLLREFCLK, HFXO);
+      CMU_CLOCK_SELECT_SET(SYSCLK, HFRCODPLL);
+      CMU_CLOCK_SELECT_SET(EM01GRPACLK, HFRCODPLL);//Necessary ?
+      CMU_CLOCK_SELECT_SET(EM01GRPCCLK, HFRCODPLL);//Necessary ?
+
+      CORE_EXIT_CRITICAL();
     }
   else
   {
