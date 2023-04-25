@@ -102,6 +102,7 @@
             <file name="sl_device_init_dpll.h" linked="false" uri="studio:/sdk/platform/service/device_init/inc/sl_device_init_dpll.h"/>
             <file name="sl_device_init_emu.h" linked="false" uri="studio:/sdk/platform/service/device_init/inc/sl_device_init_emu.h"/>
             <file name="sl_device_init_hfxo.h" linked="false" uri="studio:/sdk/platform/service/device_init/inc/sl_device_init_hfxo.h"/>
+            <file name="sl_device_init_lfxo.h" linked="false" uri="studio:/sdk/platform/service/device_init/inc/sl_device_init_lfxo.h"/>
             <file name="sl_device_init_nvic.h" linked="false" uri="studio:/sdk/platform/service/device_init/inc/sl_device_init_nvic.h"/>
           </folder>
           <folder name="src">
@@ -109,6 +110,7 @@
             <file name="sl_device_init_dpll_s2.c" linked="false" uri="studio:/sdk/platform/service/device_init/src/sl_device_init_dpll_s2.c"/>
             <file name="sl_device_init_emu_s2.c" linked="false" uri="studio:/sdk/platform/service/device_init/src/sl_device_init_emu_s2.c"/>
             <file name="sl_device_init_hfxo_s2.c" linked="false" uri="studio:/sdk/platform/service/device_init/src/sl_device_init_hfxo_s2.c"/>
+            <file name="sl_device_init_lfxo_s2.c" linked="false" uri="studio:/sdk/platform/service/device_init/src/sl_device_init_lfxo_s2.c"/>
             <file name="sl_device_init_nvic.c" linked="false" uri="studio:/sdk/platform/service/device_init/src/sl_device_init_nvic.c"/>
           </folder>
         </folder>

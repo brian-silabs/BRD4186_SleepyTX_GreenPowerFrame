@@ -23,6 +23,7 @@ include:
 sdk: {id: gecko_sdk, version: 4.2.2}
 toolchain_settings: []
 component:
+- {id: device_init_lfxo}
 - {id: emlib_rmu}
 - {id: emlib_iadc}
 - {id: emlib_letimer}

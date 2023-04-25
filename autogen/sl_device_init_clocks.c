@@ -32,7 +32,8 @@
 
 #include "em_cmu.h"
 
-sl_status_t sl_device_init_clocks(void)
+#if 1
+sl_status_t sl_device_init_clocks(void)//492uA + RF seems working // compare 500uA with 100uA
 {
   CMU_CLOCK_SELECT_SET(SYSCLK, HFRCODPLL);
 #if defined(_CMU_EM01GRPACLKCTRL_MASK)
@@ -43,6 +44,48 @@ sl_status_t sl_device_init_clocks(void)
 #endif
 #if defined(_CMU_EM01GRPCCLKCTRL_MASK)
   CMU_CLOCK_SELECT_SET(EM01GRPCCLK, HFRCODPLL);
+#endif
+  CMU_CLOCK_SELECT_SET(EM23GRPACLK, LFXO);
+  CMU_CLOCK_SELECT_SET(EM4GRPACLK, ULFRCO);
+#if defined(RTCC_PRESENT)
+  CMU_CLOCK_SELECT_SET(RTCC, LFRCO);
+#endif
+#if defined(SYSRTC_PRESENT)
+  CMU_CLOCK_SELECT_SET(SYSRTC, LFXO);
+#endif
+  CMU_CLOCK_SELECT_SET(WDOG0, LFXO);
+#if WDOG_COUNT > 1
+  CMU_CLOCK_SELECT_SET(WDOG1, LFXO);
+#endif
+
+#ifdef SL_DEVICE_INIT_DPLL_FREQ
+  CMU->SYSCLKCTRL_SET = CMU_SYSCLKCTRL_RHCLKPRESC_DIV2;
+  //CMU->SYSCLKCTRL_SET = CMU_SYSCLKCTRL_PCLKPRESC_DIV2;
+  //No presclaer on HCLK
+  //160uA without LDMA
+  //490uA with LDMA
+
+  //CMU->SYSCLKCTRL_SET = CMU_SYSCLKCTRL_HCLKPRESC_DIV16;// 773uA if enabled
+  //160uA without LDMA
+  //773uA if LDMA enabled
+
+#endif
+  return SL_STATUS_OK;
+}
+
+#else
+
+sl_status_t sl_device_init_clocks(void)//375uA + RF seems working
+{
+  CMU_CLOCK_SELECT_SET(SYSCLK, HFXO);
+#if defined(_CMU_EM01GRPACLKCTRL_MASK)
+  CMU_CLOCK_SELECT_SET(EM01GRPACLK, HFXO);
+#endif
+#if defined(_CMU_EM01GRPBCLKCTRL_MASK)
+  CMU_CLOCK_SELECT_SET(EM01GRPBCLK, HFRCODPLL);
+#endif
+#if defined(_CMU_EM01GRPCCLKCTRL_MASK)
+  CMU_CLOCK_SELECT_SET(EM01GRPCCLK, HFXO);
 #endif
   CMU_CLOCK_SELECT_SET(EM23GRPACLK, LFRCO);
   CMU_CLOCK_SELECT_SET(EM4GRPACLK, ULFRCO);
@@ -57,9 +100,7 @@ sl_status_t sl_device_init_clocks(void)
   CMU_CLOCK_SELECT_SET(WDOG1, LFRCO);
 #endif
 
-#ifdef SL_DEVICE_INIT_DPLL_FREQ
-  CMU->SYSCLKCTRL_SET = CMU_SYSCLKCTRL_RHCLKPRESC_DIV2;
-#endif
-
   return SL_STATUS_OK;
 }
+
+#endif

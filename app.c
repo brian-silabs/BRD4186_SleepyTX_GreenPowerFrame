@@ -339,6 +339,7 @@ LDMA_Descriptor_t descriptor;
 // buffer to store IADC samples
 uint32_t scanBuffer[NUM_SAMPLES] = {0xFF};
 uint32_t iadcPrsChannel = 0;
+LDMA_TransferCfg_t transferCfg = LDMA_TRANSFER_CFG_PERIPHERAL(ldmaPeripheralSignal_IADC0_IADC_SCAN);
 #endif //#if TEST_IADC
 
 
@@ -370,6 +371,7 @@ static uint32_t frameCounterTestValue = 0xDEADCAFE;
 
 static bool shouldHibernate = true;//From the app perspective, always go to EM4
 static bool saveLastFC = false;
+static bool startedSampling = false;
 
 // -----------------------------------------------------------------------------
 //                          Function Definitions
@@ -400,7 +402,7 @@ static void letimerInit(void)
   init.topValue = SAMPLING_TIME_TICK-1; //CMU_ClockFreqGet(cmuClock_LETIMER0) / SAMPLING_FREQ_HZ;
 
   // Enable letimer
-  init.enable = true;
+  //init.enable = true;
   init.debugRun = false;
 
   // Initialize free-running letimer
@@ -534,7 +536,7 @@ void initIADC (void)
   initScan.alignment = iadcAlignRight16;
 
   // Enable triggering of scan conversion
-  initScan.start = true;
+  //initScan.start = true;
 
   // Set to run in EM2
   initScan.fifoDmaWakeup = true;
@@ -633,8 +635,7 @@ void initLDMA(uint32_t *buffer, uint32_t size)
 
   // Configure LDMA for transfer from IADC to memory
   // LDMA will loop continuously
-  LDMA_TransferCfg_t transferCfg =
-    LDMA_TRANSFER_CFG_PERIPHERAL(ldmaPeripheralSignal_IADC0_IADC_SCAN);
+//transferCfg = LDMA_TRANSFER_CFG_PERIPHERAL(ldmaPeripheralSignal_IADC0_IADC_SCAN);
 
   // Set up descriptors for buffer transfer
   descriptor = (LDMA_Descriptor_t)LDMA_DESCRIPTOR_LINKREL_P2M_WORD(&IADC0->SCANFIFODATA, buffer, size, 0);
@@ -649,7 +650,7 @@ void initLDMA(uint32_t *buffer, uint32_t size)
   descriptor.xfer.ignoreSrec = 1;
 
   // Start transfer, LDMA will sample the IADC NUM_SAMPLES time, and then interrupt
-  LDMA_StartTransfer(IADC_LDMA_CHANNEL, (void*)&transferCfg, (void*)&descriptor);
+  //LDMA_StartTransfer(IADC_LDMA_CHANNEL, (void*)&transferCfg, (void*)&descriptor);
 }
 #endif //#if TEST_IADC
 
@@ -851,6 +852,25 @@ static void lowPowerInit(void)
   //EMU_EM4Init(&em4Init);
 }
 
+static void iadcStart(void)
+{
+  if( !startedSampling )
+  {
+
+      IADC_command(IADC0, iadcCmdStartScan);
+
+      // Start timer
+      LETIMER_Enable(LETIMER0, true);
+
+      // Start LDMA
+      LDMA_StartTransfer(IADC_LDMA_CHANNEL, (void*)&transferCfg, (void*)&descriptor);
+      // One of the desc has doneIfs set, so interrupt should be activated on the channel :
+      LDMA->IEN |= 1UL << (uint8_t)IADC_LDMA_CHANNEL; // Allow  interrupt to be fired by any desc
+      // Set flag to indicate sampling is occuring.
+      startedSampling = true;
+  }
+}
+
 
 void checkResetCause (void)
 {
@@ -1010,7 +1030,7 @@ void app_init(void)
   //Init LETIMER
   letimerInit();
 
-
+  iadcStart();
 
 #else
   // IADC single already enabled; must enable timer block in order to trigger
@@ -1137,8 +1157,30 @@ void app_process_action(void)
             BURTC_CounterReset();//Enable next TX
             shouldHibernate = false;//Disable re-enabling the radio TX in case we were woken up in between
         }
+
+      //From ref man 9.4.3.1:
+      // The DPLL is disabled automatically when entering EM2, EM3, or EM4. Note that disabling the DPLL will not automatically turn off the
+      // reference clock. The CLKSEF field in CMU_DPLLREFCLKCTRL must be set to DISABLED before entering EM2 or the selected
+      // REFCLK may continue to run in EM2.
+
+      //Disable PLL REF
+      CMU_CLOCK_SELECT_SET(SYSCLK, FSRCO);
+      CMU_CLOCK_SELECT_SET(EM01GRPACLK, FSRCO);//Necessary ?
+      CMU_CLOCK_SELECT_SET(EM01GRPCCLK, FSRCO);//Necessary ?
+
+      CMU_CLOCK_SELECT_SET(DPLLREFCLK, DISABLED);
+      //At this point the MCU is ready for sleep with HCLK on FSRCO
+      //Need to check with the team if that is the best config
+
       // Go to sleep
       EMU_EnterEM2(true);
+
+      //Enable PLL REF
+      CMU_CLOCK_SELECT_SET(DPLLREFCLK, HFXO);
+      CMU_CLOCK_SELECT_SET(SYSCLK, HFRCODPLL);
+      CMU_CLOCK_SELECT_SET(EM01GRPACLK, HFRCODPLL);//Necessary ?
+      CMU_CLOCK_SELECT_SET(EM01GRPCCLK, HFRCODPLL);//Necessary ?
+
     }
     // Wakeup and sync the RAIL timebase back up
     RAIL_Wake(0);
@@ -1157,35 +1199,28 @@ void app_process_action(void)
       shouldHibernate = false;
     }
 
-  //From ref man 9.4.3.1:
-  // The DPLL is disabled automatically when entering EM2, EM3, or EM4. Note that disabling the DPLL will not automatically turn off the
-  // reference clock. The CLKSEF field in CMU_DPLLREFCLKCTRL must be set to DISABLED before entering EM2 or the selected
-  // REFCLK may continue to run in EM2.
+    //From ref man 9.4.3.1:
+    // The DPLL is disabled automatically when entering EM2, EM3, or EM4. Note that disabling the DPLL will not automatically turn off the
+    // reference clock. The CLKSEF field in CMU_DPLLREFCLKCTRL must be set to DISABLED before entering EM2 or the selected
+    // REFCLK may continue to run in EM2.
 
-  // However it works much better letting CLKSEL ?
+    //Disable PLL REF
+    CMU_CLOCK_SELECT_SET(SYSCLK, FSRCO);
+    CMU_CLOCK_SELECT_SET(EM01GRPACLK, FSRCO);//Necessary ?
+    CMU_CLOCK_SELECT_SET(EM01GRPCCLK, FSRCO);//Necessary ?
 
-//        //Disable PLL REF
-//        CMU_CLOCK_SELECT_SET(SYSCLK, FSRCO);
-//        CMU_CLOCK_SELECT_SET(EM01GRPACLK, FSRCO);//Necessary ?
-//        CMU_CLOCK_SELECT_SET(EM01GRPCCLK, FSRCO);//Necessary ?
-//
-//        CMU_CLOCK_SELECT_SET(DPLLREFCLK, DISABLED);
-//        //At this point the MCU is ready for sleep with HCLK on FSRCO
-//        //Need to check with the team if that is the best config
-//
-//        CMU_CLOCK_SELECT_SET(SYSCLK, HFRCODPLL);
-//        CMU_CLOCK_SELECT_SET(EM01GRPACLK, HFRCODPLL);//Necessary ?
-//        CMU_CLOCK_SELECT_SET(EM01GRPCCLK, HFRCODPLL);//Necessary ?
+    CMU_CLOCK_SELECT_SET(DPLLREFCLK, DISABLED);
+    //At this point the MCU is ready for sleep with HCLK on FSRCO
+    //Need to check with the team if that is the best config
 
     // Go to sleep
     EMU_EnterEM2(true);
 
-//        sl_device_init_dpll();
-//        //Enable PLL REF
-//        CMU_CLOCK_SELECT_SET(DPLLREFCLK, HFXO);
-//        CMU_CLOCK_SELECT_SET(SYSCLK, HFRCODPLL);
-//        CMU_CLOCK_SELECT_SET(EM01GRPACLK, HFRCODPLL);//Necessary ?
-//        CMU_CLOCK_SELECT_SET(EM01GRPCCLK, HFRCODPLL);//Necessary ?
+    //Enable PLL REF
+    CMU_CLOCK_SELECT_SET(DPLLREFCLK, HFXO);
+    CMU_CLOCK_SELECT_SET(SYSCLK, HFRCODPLL);
+    CMU_CLOCK_SELECT_SET(EM01GRPACLK, HFRCODPLL);//Necessary ?
+    CMU_CLOCK_SELECT_SET(EM01GRPCCLK, HFRCODPLL);//Necessary ?
 
     CORE_EXIT_CRITICAL();
 #endif//#if TEST_RADIO

@@ -4,6 +4,7 @@
 #include "sl_device_init_nvic.h"
 #include "sl_device_init_dcdc.h"
 #include "sl_device_init_hfxo.h"
+#include "sl_device_init_lfxo.h"
 #include "sl_device_init_dpll.h"
 #include "sl_device_init_clocks.h"
 #include "sl_device_init_emu.h"
@@ -16,6 +17,7 @@ void sl_platform_init(void)
   sl_device_init_nvic();
   sl_device_init_dcdc();
   sl_device_init_hfxo();
+  sl_device_init_lfxo();
   sl_device_init_dpll();
   sl_device_init_clocks();
   sl_device_init_emu();
